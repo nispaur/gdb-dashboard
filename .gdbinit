@@ -229,6 +229,9 @@ class Dashboard(gdb.Command):
         # try to contain the GDB messages in a specified area unless the
         # dashboard is printed to a separate file
         if self.is_running() and not self.output:
+            # Reload local gdb breakpoints file, if available
+            if os.path.isfile('./.gdbinit'):
+                gdb.execute('source .gdbinit', to_string=True)
             Dashboard.update_term_width()
             gdb.write(Dashboard.clear_screen())
             gdb.write(divider('Output/messages', True))
@@ -786,10 +789,14 @@ instructions constituting the current statement are marked, if available."""
                 pass  # e.g., @plt
         # fetch the assembly flavor and the extension used by Pygments
         # TODO save the lexer and reuse it if performance becomes a problem
-        filename = {
-            'att': '.s',
-            'intel': '.asm'
-        }.get(gdb.parameter('disassembly-flavor'), '.s')
+        try:
+            filename = {
+                'att': '.s',
+                'intel': '.asm'
+            }.get(gdb.parameter('disassembly-flavor'), '.s')
+        except RuntimeError:
+            # No disassembly flavor for ARM architecture, defaulting to MAPCS standard (.s)
+            filename = '.s'
         # return the machine code
         max_length = max(instr['length'] for instr in asm)
         inferior = gdb.selected_inferior()
