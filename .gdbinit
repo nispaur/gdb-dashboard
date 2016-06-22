@@ -13,6 +13,7 @@ import termios
 
 # Common attributes ------------------------------------------------------------
 
+
 class R():
 
     @staticmethod
@@ -65,6 +66,7 @@ which `{pid}` is expanded with the process identifier of the target program.""",
             },
             'divider_fill_style_primary': {
                 'doc': 'Style for `divider_fill_char_primary`',
+
                 'default': '36'
             },
             'divider_fill_style_secondary': {
@@ -124,14 +126,17 @@ which `{pid}` is expanded with the process identifier of the target program.""",
 
 # Common -----------------------------------------------------------------------
 
+
 def run(command):
     return gdb.execute(command, to_string=True)
+
 
 def ansi(string, style):
     if R.ansi:
         return '\x1b[{}m{}\x1b[0m'.format(style, string)
     else:
         return string
+
 
 def divider(label='', primary=False, active=True):
     width = Dashboard.term_width
@@ -162,16 +167,20 @@ def divider(label='', primary=False, active=True):
     else:
         return ansi(divider_fill_char * width, divider_fill_style)
 
+
 def check_gt_zero(x):
     return x > 0
 
+
 def check_ge_zero(x):
     return x >= 0
+
 
 def to_unsigned(value, size=8):
     # values from GDB can be used transparently but are not suitable for
     # being printed as unsigned integers, so a conversion is needed
     return int(value.cast(gdb.Value(0).type)) % (2 ** (size * 8))
+
 
 def to_string(value):
     # attempt to convert an inferior value to string; OK when (Python 3 ||
@@ -183,9 +192,11 @@ def to_string(value):
         value_string = unicode(value).encode('utf8')
     return value_string
 
+
 def format_address(address):
     pointer_size = gdb.parse_and_eval('$pc').type.sizeof
     return ('0x{{:0{}x}}').format(pointer_size * 2).format(address)
+
 
 def highlight(source, filename):
     if not R.ansi:
@@ -208,6 +219,7 @@ def highlight(source, filename):
     return highlighted, source.rstrip('\n')
 
 # Dashboard --------------------------------------------------------------------
+
 
 class Dashboard(gdb.Command):
     """Redisplay the dashboard."""
@@ -428,6 +440,7 @@ class Dashboard(gdb.Command):
 
         def add_main_command(self, dashboard):
             module = self
+
             def invoke(self, arg, from_tty, info=self):
                 arg = Dashboard.parse_arg(arg)
                 if arg == '':
@@ -458,6 +471,7 @@ class Dashboard(gdb.Command):
             action = command['action']
             doc = command['doc']
             complete = command.get('complete')
+
             def invoke(self, arg, from_tty, info=self):
                 arg = Dashboard.parse_arg(arg)
                 if info.enabled:
@@ -631,6 +645,7 @@ or print (when the value is omitted) individual attributes."""
                 value = attr_type(attr_default)
                 setattr(self.obj, attr_name, value)
                 # create the command
+
                 def invoke(self, arg, from_tty, name=name, attr_name=attr_name,
                            attr_type=attr_type, attr_check=attr_check):
                     new_value = Dashboard.parse_arg(arg)
@@ -674,6 +689,7 @@ or print (when the value is omitted) individual attributes."""
         pass
 
 # Default modules --------------------------------------------------------------
+
 
 class Source(Dashboard.Module):
     """Show the program source code, if available."""
@@ -747,6 +763,7 @@ class Source(Dashboard.Module):
             }
         }
 
+
 class Assembly(Dashboard.Module):
     """Show the disassembled code surrounding the program counter. The
 instructions constituting the current statement are marked, if available."""
@@ -795,7 +812,7 @@ instructions constituting the current statement are marked, if available."""
                 'intel': '.asm'
             }.get(gdb.parameter('disassembly-flavor'), '.s')
         except RuntimeError:
-            # No disassembly flavor for ARM architecture, defaulting to MAPCS standard (.s)
+            # No disassembly-flavor parameter avail. for ARM architecture
             filename = '.s'
         # return the machine code
         max_length = max(instr['length'] for instr in asm)
@@ -871,6 +888,7 @@ instructions constituting the current statement are marked, if available."""
                 'type': bool
             }
         }
+
 
 class Stack(Dashboard.Module):
     """Show the current stack trace including the function name and the file
@@ -987,6 +1005,7 @@ location, if available. Optionally list the frame arguments and locals too."""
             }
         }
 
+
 class History(Dashboard.Module):
     """List the last entries of the value history."""
 
@@ -1015,6 +1034,7 @@ class History(Dashboard.Module):
                 'check': check_gt_zero
             }
         }
+
 
 class Memory(Dashboard.Module):
     """Allow to inspect memory regions."""
@@ -1116,6 +1136,7 @@ class Memory(Dashboard.Module):
             }
         }
 
+
 class Registers(Dashboard.Module):
     """Show the CPU registers and their values."""
 
@@ -1175,6 +1196,7 @@ class Registers(Dashboard.Module):
             pass
         return str(value)
 
+
 class Threads(Dashboard.Module):
     """List the currently available threads."""
 
@@ -1202,6 +1224,7 @@ class Threads(Dashboard.Module):
         selected_thread.switch()
         selected_frame.select()
         return out
+
 
 class Expressions(Dashboard.Module):
     """Watch user expressions."""
