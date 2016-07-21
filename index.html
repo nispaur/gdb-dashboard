@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>GDB Dashboard ARM by nispaur</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">GDB Dashboard ARM</h1>
+      <h2 class="project-tagline">A modular visual interface for GDB in Python</h2>
+      <a href="https://github.com/nispaur/gdb-dashboard-arm" class="btn">View on GitHub</a>
+      <a href="https://github.com/nispaur/gdb-dashboard-arm/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/nispaur/gdb-dashboard-arm/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="gdb-dashboard" class="anchor" href="#gdb-dashboard" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>GDB dashboard</h1>
+
+<p>Modular visual interface for GDB in Python.</p>
+
+<p>This comes as a standalone single-file <a href="https://raw.githubusercontent.com/cyrus-and/gdb-dashboard/master/.gdbinit"><code>.gdbinit</code></a> which, among the other
+things, enables a configurable dashboard showing the most relevant information
+during the program execution. Its main goal is to reduce the number of GDB
+commands issued to inspect the current program status allowing the programmer to
+focus on the control flow instead.</p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Just place <a href="https://raw.githubusercontent.com/cyrus-and/gdb-dashboard/master/.gdbinit"><code>.gdbinit</code></a> in your home directory, for example:</p>
+
+<pre><code>wget -P ~ https://raw.githubusercontent.com/nispaur/gdb-dashboard-arm/master/.gdbinit
+</code></pre>
+
+<h2>
+<a id="screenshot" class="anchor" href="#screenshot" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Screenshot</h2>
+
+<p><img src="http://i.imgur.com/g8I3suo.png" alt="Screenshot"></p>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
+
+<ul>
+<li><p>Single GDB init file.</p></li>
+<li><p>Write the dashboard to the main GDB console or to an external file/TTY.</p></li>
+<li><p>Interaction with GDB using the native <a href="https://sourceware.org/gdb/onlinedocs/gdb/Python-API.html">Python API</a>.</p></li>
+<li><p>Several default modules are included to address the most basic
+needs: source code, assembly, registers, etc.).</p></li>
+<li><p>User-defined modules can be easily developed by extending a
+<a href="#custom-modules">Python class</a>.</p></li>
+<li><p>Additional configuration files (both <a href="https://sourceware.org/gdb/onlinedocs/gdb/Command-Files.html">GDB</a> and Python) are read
+from <code>~/.gdbinit.d/</code>.</p></li>
+<li><p>Fully styleable user interface and dynamic command prompt.</p></li>
+<li><p>Optional syntax highlighting using the <a href="http://pygments.org/">Pygments</a> Python
+library.</p></li>
+<li><p>No GDB command has been redefined, instead all the
+features are available as subcommands of the main <code>dashboard</code> command.</p></li>
+</ul>
+
+<h2>
+<a id="minimal-requirements" class="anchor" href="#minimal-requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Minimal requirements</h2>
+
+<p>GDB dashboard requires at least GDB 7.7 compiled with Python 2.7 in order to
+work properly.</p>
+
+<p>See <a href="https://github.com/cyrus-and/gdb-dashboard/issues/1">#1</a> for more
+details/workarounds.</p>
+
+<h2>
+<a id="additional-gdb-front-ends" class="anchor" href="#additional-gdb-front-ends" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Additional GDB front ends</h2>
+
+<p>GDB dashboard is not meant to work seamlessly with additional front ends, e.g.,
+TUI, Nemiver, etc. There are basically two options to work around this:</p>
+
+<ul>
+<li><p>Prevent the front from loading the <code>.gdbinit</code> file. For example, start TUI
+with <code>gdbtui --nx</code>.</p></li>
+<li>
+<p>Load GDB dashboard manually (only recommended if the front end is the
+most used option). Install as usual, then:</p>
+
+<pre><code>mv ~/.gdbinit ~/.gdb-dashboard
+</code></pre>
+
+<p>Finally from the GDB shell:</p>
+
+<pre><code>source ~/.gdb-dashboard
+</code></pre>
+</li>
+</ul>
+
+<h2>
+<a id="default-modules" class="anchor" href="#default-modules" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Default modules</h2>
+
+<p>Follows the list of bundled default modules. Refer to the GDB help system for
+the full syntax.</p>
+
+<ul>
+<li><p><code>assembly</code> shows the disassembled code surrounding the program counter. The
+instructions constituting the current statement are marked, if available.</p></li>
+<li><p><code>history</code> lists the last entries of the GDB value history.</p></li>
+<li><p><code>memory</code> allows to inspect memory regions.</p></li>
+<li><p><code>registers</code> shows the CPU registers and their values.</p></li>
+<li><p><code>source</code> show the program source code, if available.</p></li>
+<li><p><code>stack</code> shows the current stack trace including the function name and the
+file location, if available. Optionally list the frame arguments and locals
+too.</p></li>
+<li><p><code>threads</code> lists the currently available threads.</p></li>
+<li><p><code>expressions</code> watches user expressions.</p></li>
+</ul>
+
+<h2>
+<a id="commands" class="anchor" href="#commands" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Commands</h2>
+
+<p>The GDB documentation is available at <code>help dashboard</code>. Just like any GDB
+command, abbreviations are possible. Moreover, the alias <code>db</code> resolves to
+<code>dashboard</code>.</p>
+
+<h3>
+<a id="dashboard" class="anchor" href="#dashboard" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>dashboard</h3>
+
+<p>This is the root command and it is used to manually redisplay the dashboard.</p>
+
+<h3>
+<a id="dashboard--output-file" class="anchor" href="#dashboard--output-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>dashboard -output [<code>&lt;file&gt;</code>]</h3>
+
+<p>By default the dashboard is written to the GDB console but it is possible to
+redirect its output to a file or even to another terminal. If the target is a
+valid terminal TTY then its width is used to format the dashboard, otherwise
+fall back to the width of the main GDB console.</p>
+
+<p>Without argument reset this setting to the default.</p>
+
+<h4>
+<a id="display-the-dashboard-in-another-terminal" class="anchor" href="#display-the-dashboard-in-another-terminal" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Display the dashboard in another terminal</h4>
+
+<p><img src="http://i.imgur.com/6TIKXh0.png" alt="Dashboard in another terminal"></p>
+
+<ol>
+<li><p>start GDB in one terminal;</p></li>
+<li><p>open another terminal (e.g. <a href="https://github.com/tmux/tmux">tmux</a> pane) and get its TTY with the
+<code>tty</code> command (e.g. <code>/dev/ttys001</code>, the name may be different for a variety
+of reasons);</p></li>
+<li><p>issue the command <code>dashboard -output /dev/ttys001</code> to redirect the dashboard
+output to the newly created terminal;</p></li>
+<li><p>debug as usual.</p></li>
+</ol>
+
+<h4>
+<a id="display-the-dashboard-in-a-web-browser" class="anchor" href="#display-the-dashboard-in-a-web-browser" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Display the dashboard in a web browser</h4>
+
+<p>Pushing this even further, one could use a web browser as an auxiliary terminal
+using <a href="https://github.com/yudai/gotty">gotty</a>.</p>
+
+<p><img src="http://i.imgur.com/5uncF7e.png" alt="Dashboard in a web browser"></p>
+
+<ol>
+<li><p>start GDB in one terminal;</p></li>
+<li><p>open another terminal and execute <code>gotty sh -c 'tty; cat'</code>;</p></li>
+<li><p>open a web browser, navigate to <code>http://localhost:8080</code> and note the TTY;</p></li>
+<li><p>issue the command <code>dashboard -output /dev/ttys001</code> to redirect the dashboard
+output to the web browser;</p></li>
+<li><p>debug as usual.</p></li>
+</ol>
+
+<h3>
+<a id="dashboard--enabled-onoff" class="anchor" href="#dashboard--enabled-onoff" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>dashboard -enabled [on|off]</h3>
+
+<p>Enable or disable the automatic display of the dashboard whenever the target
+program stops. The dashboard is enabled by default and even when it is disabled,
+it can be manually displayed with <code>dashboard</code>.</p>
+
+<p>Sometimes it may be convenient to redraw the dashboard even if the target
+program has not changed its execution status, for example when the programmer
+switches the currently selected frame with the <code>up</code> or <code>down</code> commands. It is
+possible to do so by setting up some GDB hooks in the <a href="#configuration">user-defined init
+file</a>, for example:</p>
+
+<pre><code>define hookpost-up
+dashboard
+end
+
+define hookpost-down
+dashboard
+end
+</code></pre>
+
+<h3>
+<a id="dashboard--layout-directive" class="anchor" href="#dashboard--layout-directive" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>dashboard -layout [<code>&lt;directive&gt;</code>...]</h3>
+
+<p>By default, all the modules are enabled and placed within the dashboard in
+alphabetical order. As the number of modules grows, it is important to decide
+which modules will be part of the dashboard, and where.</p>
+
+<p>Each directive is in the form <code>[!]&lt;module&gt;</code>, when the <code>!</code> is present then the
+corresponding module is disabled by default. The order of directives denotes the
+display order within the dashboard. For example:</p>
+
+<pre><code>dashboard -layout source !assembly stack
+</code></pre>
+
+<p>Modules which do not appear in the list are disabled and placed after the last
+element in alphabetical order.</p>
+
+<p>When executed without arguments, this command lists all the available modules.</p>
+
+<h3>
+<a id="dashboard--style-name-value" class="anchor" href="#dashboard--style-name-value" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>dashboard -style [<code>&lt;name&gt;</code> [<code>&lt;value&gt;</code>]]</h3>
+
+<p>Access to the stylable attributes of the dashboard, see <a href="#stylable-attributes">Stylable
+attributes</a>. For example, to change the prompt to
+something more familiar:</p>
+
+<pre><code>dashboard -style prompt '(gdb)'
+</code></pre>
+
+<p>The argument is parsed as a Python literal and converted to the proper type.</p>
+
+<p>When only the name is specified this command shows the current value,
+whereas without arguments prints all the attributes.</p>
+
+<h3>
+<a id="modules-subcommands" class="anchor" href="#modules-subcommands" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Modules subcommands</h3>
+
+<p>Every module adds its own subcommand <code>dashboard &lt;module&gt;</code> which is used to
+toggle the enable flag and to redisplay the dashboard.</p>
+
+<p>Modules may also declare additional subcommands, see <code>help dashboard &lt;module&gt;</code>
+from GDB.</p>
+
+<p>Moreover, if a module declare some stylable attributes then the command
+<code>dashboard &lt;module&gt; -style</code> will be available. Its functioning is equivalent to
+the <a href="#dashboard--style-name-value"><code>dashboard -style</code></a> command but it does apply
+to a module.</p>
+
+<h2>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h2>
+
+<p>Files in <code>~/.gdbinit.d/</code> are executed in alphabetical order, but the preference
+is given to Python files. If there are subdirectories, they are walked
+recursively. The idea is to keep separated the custom modules definition from
+the configuration itself.</p>
+
+<p>The main configuration file can be placed in <code>~/.gdbinit.d/</code> (say
+<code>~/.gdbinit.d/init</code>) and should be used to tune the dashboard styles and modules
+configuration but also the usual GDB parameters.</p>
+
+<p>The alternative is to hard code changes in the provided <a href="https://raw.githubusercontent.com/cyrus-and/gdb-dashboard/master/.gdbinit"><code>.gdbinit</code></a>, to do
+so just add new modules and GDB settings under <code># Default modules</code> and <code># Better
+GDB defaults</code> respectively.</p>
+
+<h2>
+<a id="stylable-attributes" class="anchor" href="#stylable-attributes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Stylable attributes</h2>
+
+<p>There is number of attributes that can be used to customize the aspect of the
+dashboard and of its modules. They are documented within the GDB help system.
+For what concerns the dashboard itself it can be reached with:</p>
+
+<pre><code>help dashboard -style
+</code></pre>
+
+<p>Whereas for modules:</p>
+
+<pre><code>help dashboard &lt;module&gt; -style
+</code></pre>
+
+<h3>
+<a id="ansi-escape-codes" class="anchor" href="#ansi-escape-codes" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>ANSI escape codes</h3>
+
+<p>Colors and text styles are specified using <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI</a> escape codes. For
+example setting a style to <code>1;31</code> will produce <code>^[[1;31m</code>, which will result in
+displaying the text red (<code>31</code>) and bright (<code>1</code>). The ANSI output can be disabled
+by setting the <code>ansi</code> attribute to <code>False</code> (note that this will not affect the
+command prompt).</p>
+
+<h3>
+<a id="syntax-highlighting" class="anchor" href="#syntax-highlighting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Syntax highlighting</h3>
+
+<p>When the <code>ansi</code> attribute is set to <code>True</code> the <a href="http://pygments.org/">Pygments</a> Python
+library may be used by modules to provide syntax highlighting of the source
+code.</p>
+
+<p>The <code>syntax_highlighting</code> stylable attribute is a string which defines the
+Pygments <a href="http://pygments.org/docs/styles">style</a> to use.</p>
+
+<p>The list of all the available styles can be obtained with (from GDB itself):</p>
+
+<pre><code>python from pygments.styles import get_all_styles as styles
+python for s in styles(): print(s)
+</code></pre>
+
+<h3>
+<a id="dividers" class="anchor" href="#dividers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dividers</h3>
+
+<p>A divider is basically a terminal-wide horizontal line with an optional label.
+Primary dividers are those used to separate the modules, whereas secondary
+dividers may be used inside modules to logically separate different sections.
+When a section or module is empty then the styles used for the divider are those
+with the <code>off</code> qualifier.</p>
+
+<h3>
+<a id="common-styles" class="anchor" href="#common-styles" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Common styles</h3>
+
+<p>These are general purpose <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI</a> styles defined for convenience and used
+within the default modules.</p>
+
+<ul>
+<li><code>style_selected_1</code></li>
+<li><code>style_selected_2</code></li>
+<li><code>style_low</code></li>
+<li><code>style_high</code></li>
+<li><code>style_error</code></li>
+</ul>
+
+<h2>
+<a id="custom-modules" class="anchor" href="#custom-modules" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Custom modules</h2>
+
+<p>The idea of custom modules is that they provide ways to access readonly
+information from the target program status; it is safe to assume that they will
+be queried during the program execution only.</p>
+
+<p>Custom modules must inherit the <code>Dashboard.Module</code> class and define some
+methods:</p>
+
+<ul>
+<li><p><code>label</code> returns the module label which will appear in the divider.</p></li>
+<li><p><code>lines</code> return a list of strings which will form the module content. When a
+module is temporarily unable to produce its content, it should return an
+empty list; its divider will then use the styles with the <code>off</code> qualifier.</p></li>
+</ul>
+
+<p>The name of a module is automatically obtained by the class name.</p>
+
+<p>Modules are instantiated once at initialization time and kept during the whole
+the GDB session.</p>
+
+<p>Optionally, a module may include a description which will appear in the GDB help
+system by specifying a Python docstring for the class.</p>
+
+<p>Optionally, a module may define stylable attributes by defining the <code>attributes</code>
+method returning a dictionary in which the key is the attribute name and the
+value is another dictionary:</p>
+
+<ol>
+<li><p><code>default</code> is the initial value for this attribute.</p></li>
+<li><p><code>doc</code> is the documentation of this attribute which will appear in the GDB
+help system. This key can be omitted.</p></li>
+<li><p><code>name</code> is the name of the attribute of the Python object, defaults to the
+key value.</p></li>
+<li><p><code>type</code> is the type of this attribute, it is used to coerce the value passed
+as an argument to the proper type, or raise an exception. This key defaults
+to the <code>str</code> type.</p></li>
+<li><p><code>check</code> is a control callback which accept the coerced value and returns
+<code>True</code> if the value satisfies the constraint and <code>False</code> otherwise. This key
+is optional, when omitted no check is performed.</p></li>
+</ol>
+
+<p>Optionally, a module may declare subcommands by defining the <code>commands</code> method
+returning a dictionary in which the key is the command name and the value is
+another dictionary:</p>
+
+<ol>
+<li><p><code>action</code> is the callback to be executed which accepts the raw input string
+from the GDB prompt. Callbacks may raise exceptions to notify erroneous
+situations which message will be shown automatically to the user.</p></li>
+<li><p><code>doc</code> is the command documentation.</p></li>
+<li><p><code>completion</code> is the completion policy, one of the <code>gdb.COMPLETE_*</code> constants
+defined in the <a href="https://sourceware.org/gdb/onlinedocs/gdb/Commands-In-Python.html">reference manual</a>. This key is optional and
+defaults to <code>None</code> which is equivalent to <code>gdb.COMPLETE_NONE</code>.</p></li>
+</ol>
+
+<h3>
+<a id="common-functions" class="anchor" href="#common-functions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Common functions</h3>
+
+<p>A number of auxiliary common functions are defined in the global scope, they can
+be found in the provided <a href="https://raw.githubusercontent.com/cyrus-and/gdb-dashboard/master/.gdbinit"><code>.gdbinit</code></a> and concern topics like <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI</a>
+output, divider formatting, conversion callbacks, etc. They should be more or
+less self-documented, some usage examples can be found within the bundled
+default modules.</p>
+
+<h3>
+<a id="example" class="anchor" href="#example" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Example</h3>
+
+<p>Default modules already provide a good example, but here is a simple module
+which may be used as a template for new custom modules, it allows the programmer
+to note down some snippets of text during the debugging session.</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">class</span> <span class="pl-en">Notes</span>(<span class="pl-e">Dashboard</span>.<span class="pl-e">Module</span>):
+    <span class="pl-s"><span class="pl-pds">"""</span>Simple user-defined notes.<span class="pl-pds">"""</span></span>
+
+    <span class="pl-k">def</span> <span class="pl-c1">__init__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-v">self</span>.notes <span class="pl-k">=</span> []
+
+    <span class="pl-k">def</span> <span class="pl-en">label</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">'</span>Notes<span class="pl-pds">'</span></span>
+
+    <span class="pl-k">def</span> <span class="pl-en">lines</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">style_changed</span>):
+        out <span class="pl-k">=</span> []
+        <span class="pl-k">for</span> note <span class="pl-k">in</span> <span class="pl-v">self</span>.notes:
+            out.append(note)
+            <span class="pl-k">if</span> <span class="pl-v">self</span>.divider:
+                out.append(divider())
+        <span class="pl-k">return</span> out[:<span class="pl-k">-</span><span class="pl-c1">1</span>] <span class="pl-k">if</span> <span class="pl-v">self</span>.divider <span class="pl-k">else</span> out
+
+    <span class="pl-k">def</span> <span class="pl-en">add</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">arg</span>):
+        <span class="pl-k">if</span> arg:
+            <span class="pl-v">self</span>.notes.append(arg)
+        <span class="pl-k">else</span>:
+            <span class="pl-k">raise</span> <span class="pl-c1">Exception</span>(<span class="pl-s"><span class="pl-pds">'</span>Cannot add an empty note<span class="pl-pds">'</span></span>)
+
+    <span class="pl-k">def</span> <span class="pl-en">clear</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">arg</span>):
+        <span class="pl-v">self</span>.notes <span class="pl-k">=</span> []
+
+    <span class="pl-k">def</span> <span class="pl-en">commands</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-k">return</span> {
+            <span class="pl-s"><span class="pl-pds">'</span>add<span class="pl-pds">'</span></span>: {
+                <span class="pl-s"><span class="pl-pds">'</span>action<span class="pl-pds">'</span></span>: <span class="pl-v">self</span>.add,
+                <span class="pl-s"><span class="pl-pds">'</span>doc<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>Add a note.<span class="pl-pds">'</span></span>
+            },
+            <span class="pl-s"><span class="pl-pds">'</span>clear<span class="pl-pds">'</span></span>: {
+                <span class="pl-s"><span class="pl-pds">'</span>action<span class="pl-pds">'</span></span>: <span class="pl-v">self</span>.clear,
+                <span class="pl-s"><span class="pl-pds">'</span>doc<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>Remove all the notes.<span class="pl-pds">'</span></span>
+            }
+        }
+
+    <span class="pl-k">def</span> <span class="pl-en">attributes</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-k">return</span> {
+            <span class="pl-s"><span class="pl-pds">'</span>divider<span class="pl-pds">'</span></span>: {
+                <span class="pl-s"><span class="pl-pds">'</span>doc<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>Divider visibility flag.<span class="pl-pds">'</span></span>,
+                <span class="pl-s"><span class="pl-pds">'</span>default<span class="pl-pds">'</span></span>: <span class="pl-c1">True</span>,
+                <span class="pl-s"><span class="pl-pds">'</span>type<span class="pl-pds">'</span></span>: <span class="pl-c1">bool</span>
+            }
+        }</pre></div>
+
+<p>To use the above just save it in a Python file, say <code>notes.py</code>, inside
+<code>~/.gdbinit.d/</code>, the following commands (together with the help) will be
+available:</p>
+
+<pre><code>dashboard notes
+dashboard notes add
+dashboard notes clear
+dashboard notes -style
+</code></pre>
+
+<h2>
+<a id="resources" class="anchor" href="#resources" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Resources</h2>
+
+<ul>
+<li><a href="https://sourceware.org/gdb/onlinedocs/gdb/Python-API.html">GDB Python API</a></li>
+</ul>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>Copyright (c) 2015-2016 Andrea Cardaci <a href="mailto:cyrus.and@gmail.com">cyrus.and@gmail.com</a></p>
+
+<p>Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:</p>
+
+<p>The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/nispaur/gdb-dashboard-arm">GDB Dashboard ARM</a> is maintained by <a href="https://github.com/nispaur">nispaur</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
